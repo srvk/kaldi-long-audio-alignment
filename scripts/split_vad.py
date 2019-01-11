@@ -23,7 +23,7 @@ while i < len(contents):
 		k=len(segment)-1000
 	begin_time=i/100.0
 	end_time=(i+1000+k)/100.0
-	if (end_time-begin_time) >= 0.1: # duration should be atleast 10ms for feature extraction in my setup.
+	if (end_time-begin_time) >= 0.3: # duration should be atleast 30ms for feature extraction in my setup.
 		print "segment_"+str(segcount)+" key_1 "+str(i/100.0)+" "+str((i+1000+k)/100.0)
 	framecount+=len(segment)
 	i=i+1000+k

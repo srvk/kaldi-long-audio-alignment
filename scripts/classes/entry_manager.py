@@ -25,7 +25,7 @@ class EntryManager:
 				print "Words are not continous in ",self.entries[-1]," and ", entry
 				exit(1)
 			# check if to be merged. if not, just insert.
-			if(entry.begin_time!=entry.end_time and self.entries[-1].status!=entry.status and (entry.end_time-entry.begin_time)>=0.1):
+			if(entry.begin_time!=entry.end_time and self.entries[-1].status!=entry.status and (entry.end_time-entry.begin_time)>=0.3):
 				self.entries.append(entry)
 			else:
 				# merge case

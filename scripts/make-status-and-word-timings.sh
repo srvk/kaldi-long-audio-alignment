@@ -1,6 +1,6 @@
 # Copyright 2017  Speech Lab, EE Dept., IITM (Author: Srinivas Venkattaramanujam)
 
-. ./longaudio_vars.sh
+#. ./longaudio_vars.sh
 main_working_dir=$1
 working_dir=$2
 text_begin_index=$3
@@ -17,5 +17,4 @@ scripts/islands_to_status.py $working_dir/ref_and_hyp_match $working_dir/hyp_and
 # save timing information for each aligned word
 echo "Creating word timing" >> $log_dir/output.log
 cp $main_working_dir/WORD_TIMINGS $main_working_dir/WORD_TIMINGS.tmp
-scripts/segment_to_actual_word_time.py $main_working_dir/WORD_TIMINGS.tmp $working_dir/word_alignment.ctm $working_dir/segments $working_dir/ref_and_hyp_match $working_dir/hyp_and_ref_match $text_begin_index > $main_working_dir/WORD_TIMINGS
-rm $main_working_dir/WORD_TIMINGS.tmp
+scripts/segment_to_actual_word_time.py $main_working_dir/WORD_TIMINGS.tmp $working_dir/word_alignment.ctm $working_dir/segments $working_dir/ref_and_hyp_match $working_dir/hyp_and_ref_match $text_begin_index > $main_working_dir/WORD_TIMINGS && rm $main_working_dir/WORD_TIMINGS.tmp

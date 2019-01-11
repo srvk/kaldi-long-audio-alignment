@@ -31,7 +31,10 @@ for line in input_contents:
 		word=word.strip()
 		if len(word) == 0:
 			continue
-		out_str=out_str+u' '+sym2int_dict[word]
+                try:
+                        out_str=out_str+u' '+sym2int_dict[word]
+                except:
+                        out_str=out_str+u' '+sym2int_dict["<unk>"]
 	output_contents.append(out_str)
 
 for line in output_contents:

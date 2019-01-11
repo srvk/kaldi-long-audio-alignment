@@ -5,11 +5,16 @@
 # $1: nj
 # $2: decode directory name
 # $3  working directory path
-. ./longaudio_vars.sh
+#. ./longaudio_vars.sh
 nj=$1
 decode_dir=$2
 working_dir=$3
 log_dir=$4
+data_dir=$5
+lang_dir=$6
+model_dir=$7
+graph_dir=$8
+island_length=$9
 #echo "Executing utils/mkgraph.sh $lang_dir $model_dir $graph_dir" > 
 utils/mkgraph.sh $lang_dir $model_dir $graph_dir >> $log_dir/output.log 2> $log_dir/err.log || exit 1
 rm -rf $model_dir/$decode_dir
@@ -17,17 +22,19 @@ mkdir -p $model_dir/$decode_dir/scoring
 #echo "Executing steps/decode.sh --cmd $decode_cmd  --nj $nj --skip-scoring true $graph_dir $data_dir $model_dir/$decode_dir"
 steps/decode.sh --cmd $decode_cmd  --nj $nj --skip-scoring true $graph_dir $data_dir $model_dir/$decode_dir >> $log_dir/output.log 2> $log_dir/err.log || exit 1
 #echo "Making 10.hyp from lattice"
-(lattice-scale --inv-acoustic-scale=10 "ark:gunzip -c $model_dir/$decode_dir/lat.*.gz|" ark:- 2> $log_dir/err.log || exit 1)  | \
-        (lattice-add-penalty --word-ins-penalty=10.0 ark:- ark:- 2> $log_dir/err.log || exit 1) | \
+(lattice-scale --inv-acoustic-scale=100 "ark:gunzip -c $model_dir/$decode_dir/lat.*.gz|" ark:- 2> $log_dir/err.log || exit 1)  | \
+        (lattice-add-penalty --word-ins-penalty=0.0 ark:- ark:- 2> $log_dir/err.log || exit 1) | tee $working_dir/lattice.ark | \
         (lattice-best-path --word-symbol-table=$lang_dir/words.txt ark:- ark,t:$model_dir/$decode_dir/scoring/10.tra 2> $log_dir/err.log || exit 1 )
 (cat $model_dir/$decode_dir/scoring/10.tra 2> $log_dir/err.log || exit 1) | sed 's/segment_//g' | sort -k1n | cut -d' ' -f2- | tr '\n' ' ' | tr -s ' ' > $working_dir/hypothesis.tra
 #echo "Creating $working_dir/text_ints from $working_dir/text_actual using scripts/sym2int.py"
 (scripts/sym2int.py $lang_dir/words.txt $working_dir/text_actual 2> $log_dir/err.log || exit 1 )| tr -s ' ' > $working_dir/text_ints
 #echo "Creating word_alignment.ctm"
-(lattice-add-penalty --word-ins-penalty=10.0 ark:"gunzip -c $model_dir/$decode_dir/lat.*.gz|" ark:- 2> $log_dir/err.log || exit 1)| \
-(lattice-1best  --acoustic-scale=0.1 ark:- ark:- 2> $log_dir/err.log || exit 1) | \
+#(lattice-add-penalty --word-ins-penalty=10.0 ark:"gunzip -c $model_dir/$decode_dir/lat.*.gz|" ark:- 2> $log_dir/err.log || exit 1)
+(lattice-1best --acoustic-scale=1.0 ark:$working_dir/lattice.ark ark:- 2> $log_dir/err.log || exit 1) | \
 (lattice-align-words data/lang_test/phones/word_boundary.int $model_dir/final.mdl ark:- ark:- 2> $log_dir/err.log || exit 1) | \
 (nbest-to-ctm ark:- - 2> $log_dir/err.log || exit 1) | sed 's/segment_//g' | sort -s -k 1,1n | sed 's/^/segment_/g' > $working_dir/word_alignment.ctm
+# we can remove lattice.ark, now that we have produced hypos from it
+rm $working_dir/lattice.ark
 # note: multiple spaces before key makes sclite fail and number of lines should match 
 #echo "RM format for  $working_dir/hypothesis.tra"
 (cat $working_dir/hypothesis.tra 2> $log_dir/err.log || exit 1) | sed 's/$/ (key_1)\n/' | tr -s ' '> $working_dir/hypothesis.tra_rm

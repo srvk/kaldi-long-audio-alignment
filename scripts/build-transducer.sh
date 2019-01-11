@@ -1,9 +1,10 @@
 #!/bin/bash
 . ./path.sh
-. ./longaudio_vars.sh
+#. ./longaudio_vars.sh
 working_dir=$1
 input_file=$2
 include_skip=$3
+lang_dir=$4
 if [ $include_skip == "false" ]; then
 	echo "doing linear transducer"
 	scripts/gen_transducer.py $input_file > $working_dir/G.txt
